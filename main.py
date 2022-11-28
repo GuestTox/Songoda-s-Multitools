@@ -34,16 +34,16 @@ print(Songoda)
 
 print(Fore.CYAN +"\n\n","Welcome to Songoda's Multitools!".center(110, " "),"\n\n")
 
-def PasswordSystem():
+def PasswordMenu():
     os.system("cls")
     print(Songoda)
-    print("\n\n", Fore.CYAN + "Welcome to the Password Vault".center(110, " "), "\n\n","[1] Password Generator  [2] Password Vault [3] Manage Account  [0] Return to main menu".center(110, " "))
+    print("\n\n", Fore.CYAN + "Welcome to the Password Menu".center(110, " "), "\n\n","[1] Password Generator  [2] Password Vault [0] Return to main menu".center(110, " "))
     print("\n")
     while True:
         choice = input("        >> ").strip()
         if choice == "0" or choice == "return":
             os.system("cls")
-            print(Songoda)
+            print(Songoda, Fore.CYAN, "\n\n")
             main()
         elif choice == "1":
             print("\n", "Password Generator:".center(110, " "))
@@ -58,15 +58,59 @@ def PasswordSystem():
             print("Invalid option. Please try again.".center(110, " "))
 
 def PassVault():
-    db = sqlite3.connect("password.vault")
+    db = sqlite3.connect("vault.db")
     cursor = db.cursor()
 
     cursor.execute("CREATE TABLE IF NOT EXISTS accounts(id TEXT, password TEXT, website TEXT)")
 
-    print("\n", "Welcome to the Password Vault.".center(110, " "), "\n")
-    print("[1] View vault  [2] Manage passwords [3] Change master password  [0] Return to password menu".center(110, " "), "\n")
+    try:
+        cursor.execute("SELECT password FROM accounts WHERE website='master'")
+        MPW = (cursor.fetchone())[0]
+        
+        if MPW:
+            while True:
+                masterpassword = input("        Please enter your Master Password: ")
+                if MPW == masterpassword:
+                    break
+                else:
+                    print("Incorrect Master Password. Try again.".center(110, " "))
+        else:
+            raise sqlite3.OperationalError
+    except:
+        while True:
+            masterpassword = input("        Please enter a new Master Password: ").strip()
+            confirmmasterpassword = input("        Please confirm your Master Password: ").strip()
+            
+            if masterpassword == confirmmasterpassword:
+                break
+            else:
+                print("Passwords don't match. Try again.".center(110, " "))
 
-    choice = input("        >> ").strip()
+        cursor.execute(f"INSERT INTO accounts(id, password, website) VALUES(?, ?, ?)", ("master", masterpassword, "master"))
+        db.commit()
+
+    print("\n", "Welcome to the Password Vault.".center(110, " "), "\n")
+    print("[1] View vault  [2] Manage passwords [3] Change master password".center(110, " "))
+    print("\n", "[I] Info [C] Clear [S] Settings [0] Return to password menu".center(110, " "), "\n")
+
+    while True:
+        choice = input("        >> ").strip()
+        if choice == "1":
+            try:
+                cursor.execute("SELECT * FROM accounts")
+                passwords = cursor.fetchall()
+                for object in passwords:
+                    if object[2] != "master":
+                        print("\n" ,f"Website: {object[2]}".center(110, " "))
+                        print(f"Username: {object[0]}".center(110, " "))
+                        print(f"Password: {object[1]}".center(110, " "))
+            except:
+                print("ok")
+        elif choice == "2":
+            cursor.execute("INSERT INTO accounts(id, password, website) VALUES(?,?,?)", ("whyy", "ok123", "AMONGUS"))
+            db.commit()
+        else:
+            print("Invalid option. Please try again.".center(110, " "))
 
 def GeneratePassword(length:int):
     abc = string.ascii_letters + string.digits + string.punctuation
@@ -146,7 +190,7 @@ def main():
         elif choice == "1":
             ProjectSetup()
         elif choice == "2":
-            PasswordSystem()
+            PasswordMenu()
         elif choice == "i":
             Info()
         elif choice == "c":
