@@ -1,26 +1,10 @@
-import os, json, string, secrets, sqlite3
+import os, string, secrets, sqlite3
 from colorama import Fore, init
 from tkinter import filedialog
 
 init()
 
 os.system("cls")
-
-config = {
-    "Settings": {
-        "Version": 1,
-        "Devtools": "False",
-        "Opened before": "True"
-    }
-}
-
-try:
-    with open("config.json") as read:
-        config = json.load(read)
-except:
-    with open("config.json", "w") as write:
-            write.write("")
-            json.dump(config, write)
 
 Songoda = (Fore.BLUE +
 "\n\n                           ░██████╗░█████╗░███╗░░██╗░██████╗░░█████╗░██████╗░░█████╗░\n"
@@ -32,69 +16,83 @@ Songoda = (Fore.BLUE +
 
 print(Songoda)
 
-print(Fore.CYAN +"\n\n","Welcome to Songoda's Multitools!".center(110, " "),"\n\n")
+alreadyloggedin = False
 
 def PasswordMenu():
     os.system("cls")
     print(Songoda)
-    print("\n\n", Fore.CYAN + "Welcome to the Password Menu".center(110, " "), "\n\n","[1] Password Generator  [2] Password Vault [0] Return to main menu".center(110, " "))
+    print("\n\n", Fore.CYAN + "Welcome to the Password Menu".center(110, " "))
+    print("\n", "[1] Generate Secure Password [2] PassVault".center(110, " "))
+    print("\n", "[I] Info [C] Clear [S] Settings [0] Return to password menu".center(110, " "), "\n")
     print("\n")
     while True:
-        choice = input("        >> ").strip()
+        choice = input("        >> ").strip().lower()
         if choice == "0" or choice == "return":
             os.system("cls")
             print(Songoda, Fore.CYAN, "\n\n")
             main()
         elif choice == "1":
             print("\n", "Password Generator:".center(110, " "))
-            pwdlen = int(input("Please enter length of password: "))
-            print("Here is your generated password".center(110, " "))
+            pwdlen = int(input("        Please enter length of password: "))
+            print("\n","Here is your generated password".center(110, " "))
             print(GeneratePassword(pwdlen).center(110, " "), "\n")
         elif choice == "2":
             PassVault()
-        elif choice == "3":
-            pass
+        elif choice == "i":
+            Info()
+        elif choice == "c":
+            Clear()
+            PasswordMenu()
+        elif choice == "s":
+            Settings()
         else:
             print("Invalid option. Please try again.".center(110, " "))
 
 def PassVault():
+    global alreadyloggedin
+
     db = sqlite3.connect("vault.db")
     cursor = db.cursor()
 
     cursor.execute("CREATE TABLE IF NOT EXISTS accounts(id TEXT, password TEXT, website TEXT)")
 
-    try:
-        cursor.execute("SELECT password FROM accounts WHERE website='master'")
-        MPW = (cursor.fetchone())[0]
-        
-        if MPW:
+    if not alreadyloggedin:
+        try:
+            cursor.execute("SELECT password FROM accounts WHERE website='master'")
+            MPW = (cursor.fetchone())[0]
+            
+            if MPW:
+                while True:
+                    masterpassword = input("\n        Please enter your Master Password: ")
+                    if MPW == masterpassword:
+                        break
+                    else:
+                        print("Incorrect Master Password. Try again.".center(110, " "))
+            else:
+                raise sqlite3.OperationalError
+        except:
             while True:
-                masterpassword = input("        Please enter your Master Password: ")
-                if MPW == masterpassword:
+                masterpassword = input("\n        Please enter a new Master Password: ").strip()
+                confirmmasterpassword = input("        Please confirm your Master Password: ").strip()
+                
+                if masterpassword == confirmmasterpassword:
                     break
                 else:
-                    print("Incorrect Master Password. Try again.".center(110, " "))
-        else:
-            raise sqlite3.OperationalError
-    except:
-        while True:
-            masterpassword = input("        Please enter a new Master Password: ").strip()
-            confirmmasterpassword = input("        Please confirm your Master Password: ").strip()
-            
-            if masterpassword == confirmmasterpassword:
-                break
-            else:
-                print("Passwords don't match. Try again.".center(110, " "))
+                    print("\n","Passwords don't match. Try again.".center(110, " "))
 
-        cursor.execute(f"INSERT INTO accounts(id, password, website) VALUES(?, ?, ?)", ("master", masterpassword, "master"))
-        db.commit()
+            cursor.execute(f"INSERT INTO accounts(id, password, website) VALUES(?, ?, ?)", ("master", masterpassword, "master"))
+            db.commit()
+
+    Clear()
+
+    alreadyloggedin = True
 
     print("\n", "Welcome to the Password Vault.".center(110, " "), "\n")
     print("[1] View vault  [2] Manage passwords [3] Change master password".center(110, " "))
     print("\n", "[I] Info [C] Clear [S] Settings [0] Return to password menu".center(110, " "), "\n")
 
     while True:
-        choice = input("        >> ").strip()
+        choice = input("        >> ").strip().lower()
         if choice == "1":
             try:
                 cursor.execute("SELECT * FROM accounts")
@@ -105,12 +103,41 @@ def PassVault():
                         print(f"Username: {object[0]}".center(110, " "))
                         print(f"Password: {object[1]}".center(110, " "))
             except:
-                print("ok")
+                print("No passwords found.".center(110, " "))
         elif choice == "2":
-            cursor.execute("INSERT INTO accounts(id, password, website) VALUES(?,?,?)", ("whyy", "ok123", "AMONGUS"))
-            db.commit()
+            VaultManage()
+        elif choice == "0":
+            Clear()
+            PasswordMenu()
+        elif choice == "i":
+            Info()
+        elif choice == "c":
+            Clear()
+            PassVault()
+        elif choice == "s":
+            Settings()
         else:
             print("Invalid option. Please try again.".center(110, " "))
+
+def VaultManage():
+    Clear()
+    print("[1] Add new password [2] Delete password [3] Edit password".center(110, " "))
+    print("\n", "[I] Info [C] Clear [S] Settings [0] Return to Vault".center(110, " "))
+    print("\n\n")
+    while True:
+        choice = input("        >> ").strip().lower()
+        if choice == "0" or choice == "return":
+            os.system("cls")
+            print(Songoda)
+            VaultManage()
+        elif choice == "1": pass
+        elif choice == "2": pass
+        elif choice == "i": Info()
+        elif choice == "c": Clear(), PassVault()
+        elif choice == "s": Settings()
+        else: print("Invalid option. Please try again.".center(110, " "))
+
+def ChangeMPW(): pass
 
 def GeneratePassword(length:int):
     abc = string.ascii_letters + string.digits + string.punctuation
@@ -143,8 +170,7 @@ def Info():
 
 def Clear():
     os.system("cls")
-    print(Songoda, Fore.CYAN +"\n\n\n")
-    main()
+    print(Songoda + Fore.CYAN)
 
 def ProjectSetup():
     print("\n       - Project Setup:")
@@ -176,6 +202,7 @@ def ProjectSetup():
         print(f"          Successfully created project.\n          Path to project: {projectpath}\\{projectname}\n")
         
 def main():
+    print("\n\n" ,Fore.CYAN + "Welcome to Songoda's Multitools!".center(110, " "),"\n")
     print("[1] Project Setup  [2] Password System".center(110, " "))
     print("\n", "[I] Info [C] Clear [S] Settings [0] Exit the program".center(110, " "))
     print("\n\n")
@@ -195,6 +222,7 @@ def main():
             Info()
         elif choice == "c":
             Clear()
+            main()
         elif choice == "s":
             Settings()
         else:
