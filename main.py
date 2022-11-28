@@ -1,5 +1,5 @@
 import os, json, string, secrets, sqlite3
-from colorama import Fore, Back, Style, init
+from colorama import Fore, init
 from tkinter import filedialog
 
 init()
