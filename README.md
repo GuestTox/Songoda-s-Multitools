@@ -4,8 +4,9 @@ I created this app for my personal use to help me with coding and to learn more 
 
 # Features:
 
-Password generator, manager (WIP)
-Project Setup
+Project setup
+
+Password manager
 
 # Todo:
 Idk give me ideas.
