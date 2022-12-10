@@ -24,7 +24,7 @@ def PasswordMenu():
     print("\n\n", Fore.CYAN + "Welcome to the Password Menu".center(110, " "))
     print("\n", "[1] Generate Secure Password [2] PassVault".center(110, " "))
     print("\n", "[I] Info [C] Clear [S] Settings [0] Return to password menu".center(110, " "), "\n")
-    print("\n")
+    print("\n") 
     while True:
         choice = input("        >> ").strip().lower()
         if choice == "0" or choice == "return":
@@ -49,12 +49,12 @@ def PasswordMenu():
             print("Invalid option. Please try again.".center(110, " "))
 
 def PassVault():
-    global alreadyloggedin
+    global alreadyloggedin, db, cursor
 
     db = sqlite3.connect("vault.db")
     cursor = db.cursor()
 
-    cursor.execute("CREATE TABLE IF NOT EXISTS accounts(id TEXT, password TEXT, website TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS accounts(username TEXT, password TEXT, website TEXT)")
 
     if not alreadyloggedin:
         try:
@@ -67,7 +67,7 @@ def PassVault():
                     if MPW == masterpassword:
                         break
                     else:
-                        print("Incorrect Master Password. Try again.".center(110, " "))
+                        print("\n","Incorrect Master Password. Try again.".center(110, " "))
             else:
                 raise sqlite3.OperationalError
         except:
@@ -80,14 +80,14 @@ def PassVault():
                 else:
                     print("\n","Passwords don't match. Try again.".center(110, " "))
 
-            cursor.execute(f"INSERT INTO accounts(id, password, website) VALUES(?, ?, ?)", ("master", masterpassword, "master"))
+            cursor.execute(f"INSERT INTO accounts(username, password, website) VALUES(?, ?, ?)", ("master", masterpassword, "master"))
             db.commit()
 
     Clear()
 
     alreadyloggedin = True
 
-    print("\n", "Welcome to the Password Vault.".center(110, " "), "\n")
+    print("\n\n", "Welcome to the Password Vault.".center(110, " "), "\n")
     print("[1] View vault  [2] Manage passwords [3] Change master password".center(110, " "))
     print("\n", "[I] Info [C] Clear [S] Settings [0] Return to password menu".center(110, " "), "\n")
 
@@ -106,6 +106,21 @@ def PassVault():
                 print("No passwords found.".center(110, " "))
         elif choice == "2":
             VaultManage()
+        elif choice == "3":
+            print("\n", "Master password changer:".center(110, " "))
+            while True:
+                masterpassword = input("\n        Please enter a new Master Password: ").strip()
+                confirmmasterpassword = input("        Please confirm your Master Password: ").strip()
+                
+                if masterpassword == confirmmasterpassword:
+                    break
+                else:
+                    print("\n","Passwords don't match. Try again.".center(110, " "))
+
+            cursor.execute(f"UPDATE accounts SET password='{masterpassword}' WHERE website='master'")
+            db.commit()
+
+            print("\n", "Master Password changed successfully".center(110, " "))
         elif choice == "0":
             Clear()
             PasswordMenu()
@@ -121,6 +136,7 @@ def PassVault():
 
 def VaultManage():
     Clear()
+    print("\n\n", "Welcome to the Password Editor".center(110, " "), "\n")
     print("[1] Add new password [2] Delete password [3] Edit password".center(110, " "))
     print("\n", "[I] Info [C] Clear [S] Settings [0] Return to Vault".center(110, " "))
     print("\n\n")
@@ -129,11 +145,44 @@ def VaultManage():
         if choice == "0" or choice == "return":
             os.system("cls")
             print(Songoda)
-            VaultManage()
-        elif choice == "1": pass
+            PassVault()
+        elif choice == "1":
+            print("\n", "Adding a new password:".center(110, " "))
+            while True:
+                username = input("\n        Enter your username: ").strip()
+                if username == "": print("\n", "Error: username cannot be empty".center(110, " "))
+                else: break
+            while True:
+                website = input("        Enter the website: ").strip()
+                if website == "": print("\n", "Error: website cannot be empty".center(110, " "))
+                else: break
+            while True:
+                password = input("        Enter your password: ").strip()
+                if password == "": print("\n", "Error: password cannot be empty".center(110, " "))
+                else: break
+
+            print(f"\n        Username: {username}\n        Website: {website}\n        Password: {password}")
+
+            while True:
+                yesno = input("\n               Are you sure to add this password? ")
+                if yesno == "yes" or yesno == "y":
+                    break
+                elif yesno == "no" or yesno == "n":
+                    print()
+                    return
+                else:
+                    print("\n               Invalid answer. Please use (yes|no).\n")
+
+            cursor.execute(f"INSERT INTO accounts(username, password, website) VALUES(?, ?, ?)", (username, password, website))
+            db.commit()
+
+            print("\n" ,"Password successfully added".center(110, " "))
+
         elif choice == "2": pass
         elif choice == "i": Info()
-        elif choice == "c": Clear(), PassVault()
+        elif choice == "c":
+            Clear()
+            VaultManage()
         elif choice == "s": Settings()
         else: print("Invalid option. Please try again.".center(110, " "))
 
